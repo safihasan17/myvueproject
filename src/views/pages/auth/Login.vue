@@ -7,8 +7,8 @@ import { login } from "@/hooks/useAuth";
 import { takeFlash } from "@/utils/flash";
 
 const router = useRouter();
-const email = ref("");
-const password = ref("");
+const email = ref("sdamore@example.org");
+const password = ref("password");
 const loading = ref(false);
 const error = ref<Record<string, string[] | undefined>>({});
 // "Registration successful" arrives here after Sign Up

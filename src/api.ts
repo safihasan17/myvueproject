@@ -1,8 +1,12 @@
 import axios from "axios";
 
 // Laravel API address. Override with VITE_API_URL in a .env file.
+// export const baseUrl: string =
+//   import.meta.env.VITE_API_URL ?? "http://vue_api.test/";
+// export const baseUrlApi = `${baseUrl}api/`;
+
 export const baseUrl: string =
-  import.meta.env.VITE_API_URL ?? "http://vue_api.test/";
+  import.meta.env.VITE_API_URL ?? "https://vue-api.safiwebapp.xyz/";
 export const baseUrlApi = `${baseUrl}api/`;
 
 // other environments (keep for quick switching)
