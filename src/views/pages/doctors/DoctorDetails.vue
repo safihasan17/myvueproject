@@ -61,7 +61,7 @@ function print() {
                 :src="doctorImageUrl(doctor.image)"
                 alt=""
                 class="rounded border object-fit-cover"
-                style="height: 96px; width: 96px"
+                style="height: 200px; width: 200px"
               />
             </div>
             <div

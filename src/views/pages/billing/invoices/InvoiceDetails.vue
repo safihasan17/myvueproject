@@ -96,8 +96,8 @@ function print() {
 </script>
 
 <template>
-  <AlertMessage :message="message" @close="message = null" />
-  <PageHead title="Invoice" subtitle="Invoice details">
+  <AlertMessage class="no-print" :message="message" @close="message = null" />
+  <PageHead class="no-print" title="Invoice" subtitle="Invoice details">
     <RouterLink :to="`/edit-invoice/${id}`" class="btn-outline theme-accent"
       ><i class="bi bi-pencil"></i> Edit</RouterLink
     >
@@ -109,81 +109,138 @@ function print() {
     >
   </PageHead>
 
-  <div v-if="inv" class="row">
+  <div v-if="inv" class="row g-3">
+    <!-- ============ invoice sheet (this is what gets printed) ============ -->
     <div class="col-12 lg:col-8">
-      <div class="card mb-3">
-        <div class="card-body p-4">
-          <div class="d-flex justify-content-between align-items-start mb-3">
+      <div class="inv-sheet bg-white border rounded p-4">
+        <!-- header -->
+        <div
+          class="d-flex justify-content-between align-items-start pb-3 mb-3 border-bottom"
+        >
+          <div class="d-flex align-items-center gap-3">
+            <i class="bi bi-hospital-fill fs-lg"></i>
             <div>
-              <div class="fs-lg fw-bold">{{ inv_no(inv.id) }}</div>
-              <div class="muted small">
-                Date: {{ onlyDate(inv.invoice_date) }}
-              </div>
+              <div class="fs-lg fw-bold">Hospital MS</div>
+              <div class="muted small">Invoice / Bill</div>
+            </div>
+          </div>
+          <div class="text-end">
+            <div class="fs-lg fw-bold">{{ inv_no(inv.id) }}</div>
+            <div class="muted small mb-1">
+              Date: {{ onlyDate(inv.invoice_date) }}
             </div>
             <span :class="badgeClass(inv.status)">{{ inv.status }}</span>
           </div>
-          <div class="row">
-            <div class="col-12 md:col-6 mb-3">
-              <div class="muted small mb-1">Patient</div>
-              <div class="fw-medium">{{ inv.patient?.name }}</div>
+        </div>
+
+        <!-- patient / appointment / admission -->
+        <div class="row g-3 mb-3">
+          <div class="col-12 md:col-4">
+            <div class="border rounded p-3 h-100">
+              <div class="muted small text-uppercase">Billed to</div>
+              <div class="fw-semibold">{{ inv.patient?.name }}</div>
               <div v-if="inv.patient?.phone" class="small">
-                {{ inv.patient.phone }}
+                <i class="bi bi-telephone"></i> {{ inv.patient.phone }}
               </div>
-            </div>
-            <div v-if="inv.appointment" class="col-12 md:col-6 mb-3">
-              <div class="muted small mb-1">Appointment</div>
-              <div class="fw-medium">
-                #{{ inv.appointment.id }} ·
-                {{ onlyDate(inv.appointment.appointment_date) }}
-              </div>
-              <div class="small">{{ inv.appointment.doctor?.user?.name }}</div>
-            </div>
-            <div v-if="inv.admission" class="col-12 md:col-6 mb-3">
-              <div class="muted small mb-1">Admission</div>
-              <div class="fw-medium">
-                #{{ inv.admission.id }} · {{ inv.admission.ward?.name }}
-                {{ inv.admission.bed?.bed_number }}
+              <div v-if="inv.patient?.address" class="small muted">
+                {{ inv.patient.address }}
               </div>
             </div>
           </div>
+          <div v-if="inv.appointment" class="col-12 md:col-4">
+            <div class="border rounded p-3 h-100">
+              <div class="muted small text-uppercase">Appointment</div>
+              <div class="fw-semibold">
+                #{{ inv.appointment.id }} ·
+                {{ onlyDate(inv.appointment.appointment_date) }}
+              </div>
+              <div class="small">
+                Dr. {{ inv.appointment.doctor?.user?.name }}
+              </div>
+            </div>
+          </div>
+          <div v-if="inv.admission" class="col-12 md:col-4">
+            <div class="border rounded p-3 h-100">
+              <div class="muted small text-uppercase">Admission</div>
+              <div class="fw-semibold">
+                #{{ inv.admission.id }}
+                <template v-if="inv.admission.ward || inv.admission.bed"
+                  >· {{ inv.admission.ward?.name }}
+                  {{ inv.admission.bed?.bed_number }}</template
+                >
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <table class="table mb-0">
-            <thead>
-              <tr>
-                <th>Type</th>
-                <th>Description</th>
-                <th class="text-end">Amount</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="it in inv.items ?? []" :key="it.id">
-                <td>{{ it.item_type }}</td>
-                <td>{{ it.description }}</td>
-                <td class="text-end">{{ money(it.amount) }}</td>
-              </tr>
-              <tr v-if="!(inv.items ?? []).length">
-                <td colspan="3" class="muted text-center">No line items.</td>
-              </tr>
-            </tbody>
-            <tfoot>
-              <tr>
-                <td colspan="2" class="text-end fw-medium">Total</td>
-                <td class="text-end fw-bold">{{ money(total) }}</td>
-              </tr>
-              <tr>
-                <td colspan="2" class="text-end">Paid</td>
-                <td class="text-end">{{ money(paid) }}</td>
-              </tr>
-              <tr>
-                <td colspan="2" class="text-end fw-medium">Due</td>
-                <td class="text-end fw-bold fg-danger">{{ money(due) }}</td>
-              </tr>
-            </tfoot>
-          </table>
+        <!-- items -->
+        <table class="table table-sm mb-3">
+          <thead>
+            <tr class="small text-uppercase">
+              <th style="width: 2.5rem">#</th>
+              <th>Type</th>
+              <th>Description</th>
+              <th class="text-end">Amount</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(it, i) in inv.items ?? []" :key="it.id">
+              <td class="muted">{{ i + 1 }}</td>
+              <td>{{ it.item_type }}</td>
+              <td>{{ it.description }}</td>
+              <td class="text-end">{{ money(it.amount) }}</td>
+            </tr>
+            <tr v-if="!(inv.items ?? []).length">
+              <td colspan="4" class="muted text-center">No line items.</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <!-- payments (print only) + totals -->
+        <div class="d-flex justify-content-between align-items-start gap-3">
+          <div class="flex-grow-1 print-only">
+            <template v-if="(inv.payments ?? []).length">
+              <div class="muted small text-uppercase mb-1">
+                Payments received
+              </div>
+              <table class="table table-sm table-borderless mb-0 small">
+                <tbody>
+                  <tr v-for="p in inv.payments ?? []" :key="p.id">
+                    <td>{{ onlyDate(p.payment_date) }}</td>
+                    <td>{{ p.payment_method }}</td>
+                    <td class="text-end">{{ money(p.amount) }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </template>
+          </div>
+          <div class="ms-auto w-100 inv-totals">
+            <div class="d-flex justify-content-between px-2 py-1">
+              <span>Total</span><span class="fw-bold">{{ money(total) }}</span>
+            </div>
+            <div class="d-flex justify-content-between px-2 py-1">
+              <span>Paid</span><span>{{ money(paid) }}</span>
+            </div>
+            <div
+              class="d-flex justify-content-between border-top px-2 py-2 mt-1 fw-bold"
+              :class="due > 0 ? 'fg-danger' : 'fg-success'"
+            >
+              <span>Due</span><span>{{ money(due) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- footer -->
+        <div
+          class="d-flex justify-content-between flex-wrap gap-2 border-top mt-4 pt-3 small muted"
+        >
+          <span>Thank you. Get well soon.</span>
+          <span>This is a computer-generated invoice.</span>
         </div>
       </div>
     </div>
 
+    <!-- ============ side panel (screen only) ============ -->
     <div class="col-12 lg:col-4 no-print">
       <div v-if="canPay" class="card mb-3">
         <div class="card-body p-4">
@@ -277,3 +334,64 @@ function print() {
     Delete this payment? The invoice will be recalculated.
   </ConfirmModal>
 </template>
+
+<!-- Only what Bootstrap has no utility for: one-page A4 printing -->
+<style>
+.inv-sheet {
+  border-top: 4px solid var(--accent, #2f6fed) !important;
+}
+.inv-totals {
+  max-width: 280px;
+}
+.print-only {
+  display: none;
+}
+
+@page {
+  size: A4;
+  margin: 10mm;
+}
+@media print {
+  html,
+  body,
+  #app,
+  .app-main,
+  .content,
+  .content > .container-fluid {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+    height: auto !important;
+    display: block !important;
+  }
+  .print-only {
+    display: block;
+  }
+  /* always full width + one column on paper, whatever the window size was */
+  .row > .lg\:col-8 {
+    width: 100% !important;
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+  }
+  .inv-sheet {
+    border: 0 !important;
+    border-top: 4px solid #2f6fed !important;
+    border-radius: 0 !important;
+    padding: 6mm 0 0 !important;
+    background: #fff !important;
+    color: #000 !important;
+    font-size: 12px;
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+  .inv-sheet * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .inv-sheet tr {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+}
+</style>

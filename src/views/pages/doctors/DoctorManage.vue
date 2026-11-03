@@ -141,8 +141,8 @@ const confirmDelete = () => {
                   v-if="typeof item.image === 'string' && item.image"
                   :src="doctorImageUrl(item.image)"
                   alt=""
-                  width="32"
-                  height="32"
+                  width="50"
+                  height="50"
                   class="rounded-circle me-2 object-fit-cover"
                 />
                 {{ item.user?.name ?? `Doctor #${item.id}` }}
